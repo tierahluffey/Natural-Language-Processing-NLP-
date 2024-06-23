@@ -11,12 +11,6 @@ app = Flask(__name__)
 # Load the dataset from the CSV file
 data = pd.read_csv("final_corrected_homestays.csv", encoding='iso-8859-1')
 
-# Prepare the data and TF-IDF vectorizer
-data['homestay_description'] = data['homestay_description'].fillna('')
-data_clean = data.dropna(subset=['distance_from_KTC', 'type_of_room', 'homestay_price', 'qty_of_bed'])
-tfidf_vectorizer = TfidfVectorizer(stop_words='english')
-tfidf_matrix = tfidf_vectorizer.fit_transform(data_clean['homestay_description'])
-cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
 # Filter stop words in english vocabulary
 tfidf_vectorizer = TfidfVectorizer(stop_words='english')
@@ -44,9 +38,6 @@ def get_recommendations(selected_homestay, cosine_sim=cosine_sim, num_recommenda
 
     # Get the cosine similarity scores of all homestays with the selected_homestay
     sim_scores = list(enumerate(cosine_sim[idx]))
-
-    # Sort the homestays based on the similarity scores in descending order
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
     # Get the indices of the top num_recommendations homestays (excluding the selected_homestay)
     homestay_indices = [i[0] for i in sim_scores if data_clean['homestay_name'].iloc[i[0]] != selected_homestay][:num_recommendations]
@@ -151,9 +142,6 @@ def recommend_from_history_post():
     # Construct the path to the user's history file
     file_path = os.path.join("USER", f"{user_id}.txt")
 
-    # Ensure the file exists before attempting to read it
-    if not os.path.exists(file_path):
-        return "User history file not found."
 
     # Read the user's history file and extract the highest-rated homestay
     highest_rated_homestay = None
